@@ -4,7 +4,7 @@ Tagless
 An attempt to implement parts of the paper "Finally Tagless Partially Evaluated" by Carette et al.
 in Java. Java 8 brings lambda expression syntax and default methods, but lacks higher kinded types. We have to emulate them with a wrapper interface.
 
-Furthermore, Java does not support multi-staged programming (MSP), so we will have to improvise... (WIP)
+Furthermore, Java does not support multi-staged programming (MSP), so we will have to improvise... (work in progress!)
 
 Example
 ---
