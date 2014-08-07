@@ -1,4 +1,4 @@
-Tagless embedding in Java 8, an approximation
+Tagless
 ===
 
 An attempt to implement parts of the paper "Finally Tagless Partially Evaluated" by Carette et al.
@@ -55,12 +55,17 @@ Tagless interpretation of these is then performed as follows:
 
 ```Java
 class EvaluateProgram extends Evaluator implements Program<Val> {}
-class PrintProgram extends Printer implements Program<Pri> {}
-class HaskellPrintProgram extends HaskellPrinter implements Program<Pri> {}
-
 new EvaluateProgram().main();
-System.out.println();
+
+class PrintProgram extends Printer implements Program<Pri> {}
 new PrintProgram().main();
-System.out.println();
+
+class HaskellPrintProgram extends HaskellPrinter implements Program<Pri> {}
 new HaskellPrintProgram().main();
 ```
+
+References
+---
+
+* https://github.com/vjovanov/finally-tagless
+* http://www.cs.rutgers.edu/~ccshan/tagless/aplas.pdf
