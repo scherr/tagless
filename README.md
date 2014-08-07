@@ -32,7 +32,8 @@ interface Program<Repr> extends Symantics<Repr> {
                         ),
                         int_(4)
                     ),
-                int_(6))
+                    int_(6)
+                )
         ;
 
         // ([θ λx3.(λx4.(if (x4 <= (0)) then {(1)} else {(x4 * (x3(x4 + (-1))))}))](6))
