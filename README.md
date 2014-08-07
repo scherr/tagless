@@ -56,33 +56,32 @@ interface Program<Repr> extends Symantics<Repr> {
 ```
 Tagless interpretations are then performed as follows:
 
+Evaluation:
 ```Java
 class EvaluateProgram extends Evaluator implements Program<Val> {}
 new EvaluateProgram().main();
 ```
-Output:
 ```
 4
 10
 720
 ```
-
+Printing:
 ```Java
 class PrintProgram extends Printer implements Program<Pri> {}
 new PrintProgram().main();
 ```
-Output:
 ```
 ((λx0.(x0 + (1)))(3))
 (((λx1.(λx2.(x1 + x2)))(4))(6))
 ([θ λx3.(λx4.(if (x4 <= (0)) then {(1)} else {(x4 * (x3(x4 + (-1))))}))](6))
 ```
 
+Printing to Haskell code:
 ```Java
 class HaskellPrintProgram extends HaskellPrinter implements Program<Pri> {}
 new HaskellPrintProgram().main();
 ```
-Output:
 ```
 ((\x0 -> (x0 + (1)))((3)))
 (((\x1 -> (\x2 -> (x1 + x2)))((4)))((6)))
