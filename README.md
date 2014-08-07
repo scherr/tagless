@@ -4,7 +4,7 @@ Tagless
 An attempt to implement parts of the paper "Finally Tagless Partially Evaluated" by Carette et al.
 in Java. Java 8 brings lambda expression syntax and default methods, but lacks higher kinded types. We have to emulate them with a wrapper interface.
 
-Furthermore, Java does not support staging, so we will have to improvise...
+Furthermore, Java does not support multi-staged programming (MSP), so we will have to improvise... (WIP)
 
 Example
 ---
@@ -67,5 +67,5 @@ new HaskellPrintProgram().main();
 References
 ---
 
-* https://github.com/vjovanov/finally-tagless
-* http://www.cs.rutgers.edu/~ccshan/tagless/aplas.pdf
+* The reference paper with Haskell and OCaml implementations: http://www.cs.rutgers.edu/~ccshan/tagless/aplas.pdf
+* An implementation in Scala: https://github.com/vjovanov/finally-tagless
