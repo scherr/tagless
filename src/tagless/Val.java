@@ -10,7 +10,7 @@ class Val<T> implements HiRepr<Val, T> {
     public T val() {
         return val;
     }
-    public Val repr() {
+    public Val<T> repr() {
         return this;
     }
 }

@@ -1,5 +1,7 @@
 package tagless;
 
+import javax.naming.OperationNotSupportedException;
+
 class Pri<T> implements HiRepr<Pri, T> {
     String s;
     Pri(String t) { this.s = t; }
@@ -12,5 +14,8 @@ class Pri<T> implements HiRepr<Pri, T> {
     }
     public Pri repr() {
         return this;
+    }
+    public T val() {
+        throw new UnsupportedOperationException();
     }
 }

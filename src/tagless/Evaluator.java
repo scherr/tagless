@@ -13,11 +13,11 @@ class Evaluator implements Symantics<Val> {
     }
 
     public <A, B> HiRepr<Val, Function<A, B>> lambda(Function<HiRepr<Val, A>, HiRepr<Val, B>> f) {
-        return new Val<>( (A x) -> (B) f.apply(new Val<>(x)).repr().val() );
+        return new Val<>( x -> f.apply(new Val<>(x)).val() );
     }
 
     public <A, B> HiRepr<Val, B> app(HiRepr<Val, Function<A, B>> f, HiRepr<Val, A> v) {
-        return new Val<>( ((Function<A, B>) f.repr().val()).apply((A) v.repr().val()) );
+        return new Val<>( f.val().apply(v.val()) );
     }
 
     /*
@@ -32,23 +32,23 @@ class Evaluator implements Symantics<Val> {
         }
     */
     public <A, B> HiRepr<Val, Function<A, B>> fix(Function<HiRepr<Val, Function<A, B>>, HiRepr<Val, Function<A, B>>> f) {
-        class Self { HiRepr<Val, Function<A, B>> self = new Val<>(x -> ((Function<A, B>) f.apply(this.self).repr().val()).apply(x)); }
+        class Self { HiRepr<Val, Function<A, B>> self = new Val<>(x -> (f.apply(this.self).val()).apply(x)); }
         return new Self().self;
     }
 
     public HiRepr<Val, Integer> add(HiRepr<Val, Integer> a, HiRepr<Val, Integer> b) {
-        return new Val<>( (Integer) a.repr().val() + (Integer) b.repr().val() );
+        return new Val<>( a.val() + b.val() );
     }
 
     public HiRepr<Val, Integer> mul(HiRepr<Val, Integer> a, HiRepr<Val, Integer> b) {
-        return new Val<>( (Integer) a.repr().val() * (Integer) b.repr().val() );
+        return new Val<>( a.val() * b.val() );
     }
 
     public HiRepr<Val, Boolean> leq(HiRepr<Val, Integer> a, HiRepr<Val, Integer> b) {
-        return new Val<>( (Integer) a.repr().val() <= (Integer) b.repr().val() );
+        return new Val<>( a.val() <= b.val() );
     }
 
     public <A> HiRepr<Val, A> if_(HiRepr<Val, Boolean> test, Supplier<HiRepr<Val, A>> tBranch, Supplier<HiRepr<Val, A>> fBranch) {
-        return new Val<>((Boolean) test.repr().val() ? (A) tBranch.get().repr().val() : (A) fBranch.get().repr().val());
+        return new Val<>(test.val() ? tBranch.get().val() : fBranch.get().val());
     }
 }

@@ -3,7 +3,7 @@ package tagless;
 import java.util.function.Function;
 
 interface Program<Repr> extends Symantics<Repr> {
-    default void main() {
+    default HiRepr<Repr, Function<Integer, Function<Integer, Integer>>> main() {
         HiRepr<Repr, Integer> test1 =
                 app(
                     lambda(x ->
@@ -37,9 +37,17 @@ interface Program<Repr> extends Symantics<Repr> {
                 )
         ;
 
+        HiRepr<Repr, Function<Integer, Function<Integer, Integer>>> test3 =
+                lambda(x ->
+                    lambda(y -> add(x, y))
+                )
+        ;
+
         System.out.println(test1);
         System.out.println(test2);
         System.out.println(app(fact, int_(6)));
+
+        return test3;
     }
 }
 
@@ -54,5 +62,8 @@ public class Test {
         new PrintProgram().main();
         System.out.println();
         new HaskellPrintProgram().main();
+
+        System.out.println(new HaskellPrintProgram().main().repr());
+        System.out.println(new EvaluateProgram().main().val().apply(2).apply(10));
     }
 }
