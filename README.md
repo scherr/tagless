@@ -54,7 +54,7 @@ interface Program<Repr> extends Symantics<Repr> {
     }
 }
 ```
-Tagless interpretation of these is then performed as follows:
+Tagless interpretations are then performed as follows:
 
 ```Java
 class EvaluateProgram extends Evaluator implements Program<Val> {}
