@@ -54,7 +54,7 @@ interface Program<Repr> extends Symantics<Repr> {
     }
 }
 ```
-Tagless interpretations are then performed by creating program instances of the correct type, as follows
+Tagless interpretations are then performed by creating program instances of the correct type, as follows.
 
 Evaluation:
 ```Java
@@ -93,4 +93,3 @@ References
 
 * The reference paper with Haskell and OCaml implementations: http://www.cs.rutgers.edu/~ccshan/tagless/aplas.pdf
 * An implementation in Scala: https://github.com/vjovanov/finally-tagless
-* 
