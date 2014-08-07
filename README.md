@@ -51,3 +51,16 @@ interface Program<Repr> extends Symantics<Repr> {
     }
 }
 ```
+Tagless interpretation of these is then performed as follows:
+
+```Java
+class EvaluateProgram extends Evaluator implements Program<Val> {}
+class PrintProgram extends Printer implements Program<Pri> {}
+class HaskellPrintProgram extends HaskellPrinter implements Program<Pri> {}
+
+new EvaluateProgram().main();
+System.out.println();
+new PrintProgram().main();
+System.out.println();
+new HaskellPrintProgram().main();
+```
