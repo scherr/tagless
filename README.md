@@ -13,6 +13,7 @@ Programs can be expressed like this:
 ```Java
 interface Program<Repr> extends Symantics<Repr> {
     default void main() {
+        // ((λx0.(x0 + (1)))(3))
         HiRepr<Repr, Integer> test1 =
                 app(
                     lambda(x ->
@@ -22,6 +23,7 @@ interface Program<Repr> extends Symantics<Repr> {
                 )
         ;
 
+        // (((λx1.(λx2.(x1 + x2)))(4))(6))
         HiRepr<Repr, Integer> test2 =
                 app(
                     app(
@@ -33,6 +35,7 @@ interface Program<Repr> extends Symantics<Repr> {
                 int_(6))
         ;
 
+        // ([θ λx3.(λx4.(if (x4 <= (0)) then {(1)} else {(x4 * (x3(x4 + (-1))))}))](6))
         HiRepr<Repr, Function<Integer, Integer>> fact =
                 fix(self ->
                     lambda(n ->
