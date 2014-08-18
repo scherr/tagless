@@ -1,6 +1,6 @@
 package tagless;
 
-public interface HiRepr<Repr, A> {
+public interface Hi<Repr, A> {
     Repr repr();
     A val();
 }

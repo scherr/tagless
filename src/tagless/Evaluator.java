@@ -3,21 +3,37 @@ package tagless;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-class Evaluator implements Symantics<Val> {
-    public HiRepr<Val, Integer> int_(int i) {
-        return new Val<>(i);
+public class Evaluator implements Symantics<Evaluator.Repr> {
+    static class Repr<T> implements Hi<Repr, T> {
+        private T val;
+
+        private Repr(T val) { this.val = val; }
+
+        public String toString() {
+            return val.toString();
+        }
+        public T val() {
+            return val;
+        }
+        public Repr<T> repr() {
+            return this;
+        }
     }
 
-    public HiRepr<Val, Boolean> bool_(boolean b) {
-        return new Val<>(b);
+    public Hi<Repr, Integer> int_(int i) {
+        return new Repr<>(i);
     }
 
-    public <A, B> HiRepr<Val, Function<A, B>> lambda(Function<HiRepr<Val, A>, HiRepr<Val, B>> f) {
-        return new Val<>( x -> f.apply(new Val<>(x)).val() );
+    public Hi<Repr, Boolean> bool_(boolean b) {
+        return new Repr<>(b);
     }
 
-    public <A, B> HiRepr<Val, B> app(HiRepr<Val, Function<A, B>> f, HiRepr<Val, A> v) {
-        return new Val<>( f.val().apply(v.val()) );
+    public <A, B> Hi<Repr, Function<A, B>> lam(Function<Hi<Repr, A>, Hi<Repr, B>> f) {
+        return new Repr<>(x -> f.apply(new Repr<>(x)).val());
+    }
+
+    public <A, B> Hi<Repr, B> app(Hi<Repr, Function<A, B>> f, Hi<Repr, A> v) {
+        return new Repr<>(f.val().apply(v.val()));
     }
 
     /*
@@ -31,24 +47,29 @@ class Evaluator implements Symantics<Val> {
             return x -> f.apply(fix(f)).apply(x);
         }
     */
-    public <A, B> HiRepr<Val, Function<A, B>> fix(Function<HiRepr<Val, Function<A, B>>, HiRepr<Val, Function<A, B>>> f) {
+    public <A, B> Hi<Repr, Function<A, B>> fix(Function<Hi<Repr, Function<A, B>>, Hi<Repr, Function<A, B>>> f) {
+        /*
         class Self { HiRepr<Val, Function<A, B>> self = new Val<>(x -> (f.apply(this.self).val()).apply(x)); }
         return new Self().self;
+        */
+
+        class Self { Function<Hi<Repr, A>, Hi<Repr, B>> self = x -> app(f.apply(lam(this.self)), x); }
+        return lam(new Self().self);
     }
 
-    public HiRepr<Val, Integer> add(HiRepr<Val, Integer> a, HiRepr<Val, Integer> b) {
-        return new Val<>( a.val() + b.val() );
+    public Hi<Repr, Integer> add(Hi<Repr, Integer> a, Hi<Repr, Integer> b) {
+        return new Repr<>( a.val() + b.val() );
     }
 
-    public HiRepr<Val, Integer> mul(HiRepr<Val, Integer> a, HiRepr<Val, Integer> b) {
-        return new Val<>( a.val() * b.val() );
+    public Hi<Repr, Integer> mul(Hi<Repr, Integer> a, Hi<Repr, Integer> b) {
+        return new Repr<>( a.val() * b.val() );
     }
 
-    public HiRepr<Val, Boolean> leq(HiRepr<Val, Integer> a, HiRepr<Val, Integer> b) {
-        return new Val<>( a.val() <= b.val() );
+    public Hi<Repr, Boolean> leq(Hi<Repr, Integer> a, Hi<Repr, Integer> b) {
+        return new Repr<>( a.val() <= b.val() );
     }
 
-    public <A> HiRepr<Val, A> if_(HiRepr<Val, Boolean> test, Supplier<HiRepr<Val, A>> tBranch, Supplier<HiRepr<Val, A>> fBranch) {
-        return new Val<>(test.val() ? tBranch.get().val() : fBranch.get().val());
+    public <A> Hi<Repr, A> if_(Hi<Repr, Boolean> test, Supplier<Hi<Repr, A>> tBranch, Supplier<Hi<Repr, A>> fBranch) {
+        return new Repr<>(test.val() ? tBranch.get().val() : fBranch.get().val());
     }
 }

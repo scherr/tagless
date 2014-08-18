@@ -4,15 +4,15 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public interface Symantics<Repr> {
-    HiRepr<Repr, Integer> int_(int i);
-    HiRepr<Repr, Boolean> bool_(boolean b);
-    <A, B> HiRepr<Repr, Function<A, B>> lambda(Function<HiRepr<Repr, A>, HiRepr<Repr, B>> f);
-    <A, B> HiRepr<Repr, B> app(HiRepr<Repr, Function<A, B>> f, HiRepr<Repr, A> v);
-    <A, B> HiRepr<Repr, Function<A, B>> fix(Function<HiRepr<Repr, Function<A, B>>, HiRepr<Repr, Function<A, B>>> f);
+    Hi<Repr, Integer> int_(int i);
+    Hi<Repr, Boolean> bool_(boolean b);
+    <A, B> Hi<Repr, Function<A, B>> lam(Function<Hi<Repr, A>, Hi<Repr, B>> f);
+    <A, B> Hi<Repr, B> app(Hi<Repr, Function<A, B>> f, Hi<Repr, A> v);
+    <A, B> Hi<Repr, Function<A, B>> fix(Function<Hi<Repr, Function<A, B>>, Hi<Repr, Function<A, B>>> f);
 
-    HiRepr<Repr, Integer> add(HiRepr<Repr, Integer> a, HiRepr<Repr, Integer> b);
-    HiRepr<Repr, Integer> mul(HiRepr<Repr, Integer> a, HiRepr<Repr, Integer> b);
-    HiRepr<Repr, Boolean> leq(HiRepr<Repr, Integer> a, HiRepr<Repr, Integer> b);
+    Hi<Repr, Integer> add(Hi<Repr, Integer> a, Hi<Repr, Integer> b);
+    Hi<Repr, Integer> mul(Hi<Repr, Integer> a, Hi<Repr, Integer> b);
+    Hi<Repr, Boolean> leq(Hi<Repr, Integer> a, Hi<Repr, Integer> b);
 
-    <A> HiRepr<Repr, A> if_(HiRepr<Repr, Boolean> test, Supplier<HiRepr<Repr, A>> tBranch, Supplier<HiRepr<Repr, A>> fBranch);
+    <A> Hi<Repr, A> if_(Hi<Repr, Boolean> test, Supplier<Hi<Repr, A>> tBranch, Supplier<Hi<Repr, A>> fBranch);
 }
