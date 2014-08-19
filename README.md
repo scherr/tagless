@@ -1,6 +1,8 @@
 Tagless
 ===
 
+Maximilian Scherr, 2014-
+
 An attempt to loosely implement parts of the paper "Finally Tagless Partially Evaluated" by Carette et al.
 in Java. Java 8 brings lambda expression syntax and default methods, but lacks higher kinded types. We have to emulate them with a wrapper interface.
 
