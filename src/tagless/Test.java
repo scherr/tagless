@@ -77,9 +77,9 @@ interface Program<Repr> extends Symantics<Repr> {
                 lam(base ->
                     lam(exp ->
                         if_(
-                                leq(exp, int_(0)),
-                                () -> int_(1),
-                                () -> mul(base, app(app(self, base), add(exp, int_(-1))))
+                            leq(exp, int_(0)),
+                            () -> int_(1),
+                            () -> mul(base, app(app(self, base), add(exp, int_(-1))))
                         )
                     )
                 )
