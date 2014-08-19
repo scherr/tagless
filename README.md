@@ -28,7 +28,7 @@ interface Program<Repr> extends Symantics<Repr> {
             app(
                 app(
                     lam(x ->
-                        lambda(y -> add(x, y))
+                        lam(y -> add(x, y))
                     ),
                     int_(4)
                 ),
