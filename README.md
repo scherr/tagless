@@ -1,6 +1,8 @@
 Tagless
 ===
 
+Maximilian Scherr, 2014-
+
 An attempt to loosely implement parts of the paper "Finally Tagless Partially Evaluated" by Carette et al.
 in Java. Java 8 brings lambda expression syntax and default methods, but lacks higher kinded types. We have to emulate them with a wrapper interface.
 
@@ -16,7 +18,7 @@ interface Program<Repr> extends Symantics<Repr> {
         // ((λx0.(x0 + 1)) (3))
         Hi<Repr, Integer> test1 =
             app(
-                lambda(x ->
+                lam(x ->
                     add(x, int_(1))
                 ),
                 int_(3)
@@ -27,8 +29,8 @@ interface Program<Repr> extends Symantics<Repr> {
         Hi<Repr, Integer> test2 =
             app(
                 app(
-                    lambda(x ->
-                        lambda(y -> add(x, y))
+                    lam(x ->
+                        lam(y -> add(x, y))
                     ),
                     int_(4)
                 ),
@@ -39,7 +41,7 @@ interface Program<Repr> extends Symantics<Repr> {
         // ([θ(λx3.(λx4.if (x4 <= 0) then {1} else {(x4 * (x3 ((x4 + -1))))}))] (6))
         Hi<Repr, Function<Integer, Integer>> fact =
             fix(self ->
-                lambda(n ->
+                lam(n ->
                     if_(
                         leq(n, int_(0)),
                         () -> int_(1),
