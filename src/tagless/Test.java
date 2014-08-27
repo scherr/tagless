@@ -104,6 +104,25 @@ interface Program<Repr> extends Symantics<Repr> {
 
         return test3;
     }
+
+    default Hi<Repr, Integer> cpsTest() {
+        Hi<Repr, Integer> test =
+        app(
+            lam(x ->
+                add(x, x)
+            ),
+            app(
+                lam(x -> {
+                    System.out.println("Test!");
+                    return mul(int_(3), int_(2));
+                }),
+                int_(0)
+            )
+        )
+        ;
+
+        return test;
+    }
 }
 
 public class Test {
@@ -117,6 +136,7 @@ public class Test {
         class PrintProgram extends Printer implements Program<Printer.Repr> {}
         class HaskellPrintProgram extends HaskellPrinter implements Program<HaskellPrinter.Repr> {}
         class PartialEvaluatorProgram extends PartialEvaluator implements Program<PartialEvaluator.Repr> {}
+        class ContinuationPasserProgram extends ContinuationPasser implements Program<ContinuationPasser.Repr> {}
 
         new EvaluateProgram().main();
         System.out.println();
@@ -125,6 +145,10 @@ public class Test {
         new HaskellPrintProgram().main();
         System.out.println();
         new PartialEvaluatorProgram().main();
+        System.out.println();
+
+        Hi<ContinuationPasser.Repr, Integer> f = new ContinuationPasserProgram().cpsTest();
+        System.out.println(ContinuationPasser.run(f));
 
         /*
         System.out.println(new HaskellPrintProgram().main().repr());
