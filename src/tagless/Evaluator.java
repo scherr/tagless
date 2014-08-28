@@ -49,7 +49,7 @@ public class Evaluator implements Symantics<Evaluator.Repr> {
     */
     public <A, B> Hi<Repr, Function<A, B>> fix(Function<Hi<Repr, Function<A, B>>, Hi<Repr, Function<A, B>>> f) {
         /*
-        class Self { HiRepr<Val, Function<A, B>> self = new Val<>(x -> (f.apply(this.self).val()).apply(x)); }
+        class Self { Hi<Repr, Function<A, B>> self = new Val<>(x -> (f.apply(this.self).val()).apply(x)); }
         return new Self().self;
         */
 

@@ -25,7 +25,7 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
 
         // public Supplier<String> getLazyCode() { return lazyCode; }
         public String getCode() { return lazyCode.get(); }
-        public Optional<U> getStaticValue() { return staticValue; }
+        Optional<U> getStaticValue() { return staticValue; }
         public String toString() {
             // return "(" + code.get() + ", " + staticValue + ")";
             return lazyCode.get();
@@ -36,11 +36,21 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
         }
     }
 
-    private int maxUnfoldDepth = 10;
+    private final boolean limitUnfolding;
+    private final int maxUnfoldDepth;
 
     private int id = 0;
     private String genSym() {
         return "x" + id++;
+    }
+
+    public PartialEvaluator() {
+        this(false, 0);
+    }
+
+    public PartialEvaluator(boolean limitUnfolding, int maxUnfoldDepth) {
+        this.limitUnfolding = limitUnfolding;
+        this.maxUnfoldDepth = maxUnfoldDepth;
     }
 
     public Hi<Repr, Integer> int_(int i) {
@@ -73,92 +83,100 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
     }
 
     public <A, B> Hi<Repr, Function<A, B>> fix(Function<Hi<Repr, Function<A, B>>, Hi<Repr, Function<A, B>>> f) {
-        /*
-        class Self {
-            private int unfoldDepth = 0;
+        if (limitUnfolding) {
+            class Self {
+                private int unfoldDepth = 0;
 
-            Function<HiRepr<Par, A>, HiRepr<Par, B>> self = x -> {
-                if (this.unfoldDepth <= maxUnfoldDepth) {
-                    this.unfoldDepth++;
-                    return app(f.apply(lam(this.self)), x);
-                } else {
-                    return new Par<>(
-                        () -> {
-                            String sym = genSym();
-                            return "fix(" + sym + " -> " + f.apply(new Par<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
-                        }
-                    );
-                }
-            };
-        }
-        */
-
-        class Self {
-            Function<Hi<Repr, A>, Hi<Repr, B>> self = x -> {
-                if (x.repr().getStaticValue().isPresent()) {
-                    return app(f.apply(lam(this.self)), x);
-                } else {
-                    return new Repr<>(
-                        () -> {
-                            String sym = genSym();
-                            return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
-                        }
-                    );
-                }
-            };
-        }
-
-        return new Repr<>(
-            () -> {
-                String sym = genSym();
-                return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ")";
-            },
-            new Self().self
-        );
-
-        /*
-        class Self {
-            private int unfoldDepth = 0;
-
-            HiRepr<Par, Function<A, B>> self =
-                    new Par<Function<A, B>, Function<HiRepr<Par, A>, HiRepr<Par, B>>>(
+                Function<Hi<Repr, A>, Hi<Repr, B>> self = x -> {
+                    if (this.unfoldDepth <= maxUnfoldDepth) {
+                        this.unfoldDepth++;
+                        return app(f.apply(lam(this.self)), x);
+                    } else {
+                        return new Repr<>(
                             () -> {
                                 String sym = genSym();
-                                return "fix(" + sym + " -> " + f.apply(new Par<>(() -> sym)).repr().getCode() + ")";
-                            },
-                            x -> {
-                                if (this.unfoldDepth <= maxUnfoldDepth) {
-                                    this.unfoldDepth++;
-                                    return ((Function<HiRepr<Par, A>, HiRepr<Par, B>>) f.apply(this.self).repr().getValue().get()).apply(x);
-                                } else {
-                                    return new Par<>(
-                                        () -> {
-                                            String sym = genSym();
-                                            return "fix(" + sym + " -> " + f.apply(new Par<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
-                                        }
-                                    );
-                                }
+                                return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
                             }
-                    );
+                        );
+                    }
+                };
+            }
+
+            return new Repr<>(
+                    () -> {
+                        String sym = genSym();
+                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ")";
+                    },
+                    new Self().self
+            );
+        } else {
+            class Self {
+                Function<Hi<Repr, A>, Hi<Repr, B>> self = x -> {
+                    if (x.repr().getStaticValue().isPresent()) {
+                        return app(f.apply(lam(this.self)), x);
+                    } else {
+                        return new Repr<>(
+                            () -> {
+                                String sym = genSym();
+                                return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
+                            }
+                        );
+                    }
+                };
+            }
+
+            return new Repr<>(
+                    () -> {
+                        String sym = genSym();
+                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ")";
+                    },
+                    new Self().self
+            );
+        }
+
+        /*
+        class Self {
+            private int unfoldDepth = 0;
+
+            Hi<Repr, Function<A, B>> self =
+                new Repr<Function<A, B>, Function<Hi<Repr, A>, Hi<Repr, B>>>(
+                        () -> {
+                            String sym = genSym();
+                            return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ")";
+                        },
+                        x -> {
+                            if (this.unfoldDepth <= maxUnfoldDepth) {
+                                this.unfoldDepth++;
+                                return ((Function<Hi<Repr, A>, Hi<Repr, B>>) f.apply(this.self).repr().getStaticValue().get()).apply(x);
+                            } else {
+                                return new Repr<>(
+                                    () -> {
+                                        String sym = genSym();
+                                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
+                                    }
+                                );
+                            }
+                        }
+                );
         }
         */
 
         /*
         class Self {
-            HiRepr<Par, Function<A, B>> self =
-                new Par<Function<A, B>, Function<HiRepr<Par, A>, HiRepr<Par, B>>>(
+            Hi<Repr, Function<A, B>> self =
+                new Repr<Function<A, B>, Function<Hi<Repr, A>, Hi<Repr, B>>>(
                     () -> {
                         String sym = genSym();
-                        return "fix(" + sym + " -> " + f.apply(new Par<>(() -> sym)).repr().getCode() + ")";
+                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ")";
                     },
                     x -> {
-                        if (x.repr().getValue().isPresent()) {
-                            return ((Function<HiRepr<Par, A>, HiRepr<Par, B>>) f.apply(this.self).repr().getValue().get()).apply(x);
+                        if (x.repr().getStaticValue().isPresent()) {
+                            return ((Function<Hi<Repr, A>, Hi<Repr, B>>) f.apply(this.self).repr().getStaticValue().get()).apply(x);
                         } else {
-                            return new Par<>(
+                            return new Repr<>(
                                 () -> {
                                     String sym = genSym();
-                                    return "fix(" + sym + " -> " + f.apply(new Par<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
+                                    return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
                                 }
                             );
                         }

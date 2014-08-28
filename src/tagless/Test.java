@@ -105,23 +105,64 @@ interface Program<Repr> extends Symantics<Repr> {
         return test3;
     }
 
-    default Hi<Repr, Integer> cpsTest() {
-        Hi<Repr, Integer> test =
-        app(
-            lam(x ->
-                add(x, x)
-            ),
+    default Hi<Repr, Function<Object, Integer>> contTest() {
+        Hi<Repr, Integer> test1 =
+            app(
+                lam(x ->
+                    add(x, x)
+                ),
+                app(
+                    lam(x -> {
+                        System.out.println("Test!");
+                        return mul(int_(3), int_(2));
+                    }),
+                    int_(0)
+                )
+            )
+        ;
+
+        Hi<Repr, Function<Integer, Integer>> inner =
             app(
                 lam(x -> {
-                    System.out.println("Test!");
-                    return mul(int_(3), int_(2));
+                    System.out.println("Test x -> ...!");
+                    return lam(y -> {
+                        System.out.println("Test y -> ...!");
+                        return int_(2);
+                    });
                 }),
                 int_(0)
             )
-        )
         ;
 
-        return test;
+        // It seems blocks in lambda expressions interfere with Java's type inference.
+        // The following shows no warnings while the definition above does!
+        Hi<Repr, Function<Integer, Integer>> innerNoWarning =
+            app(
+                lam(x ->
+                    lam(y -> int_(2))
+                ),
+                int_(0)
+            )
+        ;
+
+        Hi<Repr, Integer> test2 =
+            app(
+                lam(f ->
+                    add(app(f, int_(0)), app(f, int_(0)))
+                ),
+                inner
+            )
+        ;
+
+        // This does not terminate under call-by-value but does under call-by-name.
+        Hi<Repr, Integer> diverge =
+            app(
+                lam(x -> int_(1)),
+                app(fix(f -> f), int_(2))
+            )
+        ;
+
+        return lam(x -> diverge);
     }
 }
 
@@ -135,8 +176,12 @@ public class Test {
         class EvaluateProgram extends Evaluator implements Program<Evaluator.Repr> {}
         class PrintProgram extends Printer implements Program<Printer.Repr> {}
         class HaskellPrintProgram extends HaskellPrinter implements Program<HaskellPrinter.Repr> {}
-        class PartialEvaluatorProgram extends PartialEvaluator implements Program<PartialEvaluator.Repr> {}
-        class ContinuationPasserProgram extends ContinuationPasser implements Program<ContinuationPasser.Repr> {}
+        class PartialEvaluatorProgram extends PartialEvaluator implements Program<PartialEvaluator.Repr> {
+            PartialEvaluatorProgram() { super(false, 0); }
+        }
+        class ContinuationPasserProgram extends ContinuationPasser implements Program<ContinuationPasser.Repr> {
+            ContinuationPasserProgram() { super(true, true); }
+        }
 
         new EvaluateProgram().main();
         System.out.println();
@@ -147,8 +192,8 @@ public class Test {
         new PartialEvaluatorProgram().main();
         System.out.println();
 
-        Hi<ContinuationPasser.Repr, Integer> f = new ContinuationPasserProgram().cpsTest();
-        System.out.println(ContinuationPasser.run(f));
+        ContinuationPasserProgram p = new ContinuationPasserProgram();
+        System.out.println(p.run(p.contTest()).apply(123));
 
         /*
         System.out.println(new HaskellPrintProgram().main().repr());
