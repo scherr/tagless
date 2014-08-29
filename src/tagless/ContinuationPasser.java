@@ -5,9 +5,9 @@ import java.util.function.Supplier;
 
 public class ContinuationPasser implements Symantics<ContinuationPasser.Repr> {
     static class Repr<T> implements Hi<Repr, T> {
-        private Function<Function<Object, Object>, Object> continuationConsumer;
+        private Function<Function<Object, ?>, ?> continuationConsumer;
 
-        private Repr(Function<Function<Object, Object>, Object> continuationConsumer) {
+        private Repr(Function<Function<Object, ?>, ?> continuationConsumer) {
             this.continuationConsumer = continuationConsumer;
         }
 
@@ -15,10 +15,10 @@ public class ContinuationPasser implements Symantics<ContinuationPasser.Repr> {
             return this;
         }
 
-        Function<Function<Object, Object>, Object> getContinuationConsumer() {
+        Function<Function<Object, ?>, ?> getContinuationConsumer() {
             return continuationConsumer;
         }
-        void setContinuationConsumer(Function<Function<Object, Object>, Object> continuationConsumer) {
+        void setContinuationConsumer(Function<Function<Object, ?>, ?> continuationConsumer) {
             this.continuationConsumer = continuationConsumer;
         }
 
