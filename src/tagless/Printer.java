@@ -4,7 +4,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Printer implements Symantics<Printer.Repr> {
-    static class Repr<T> implements Hi<Repr, T> {
+    static class Repr<T> implements Of<Repr, T> {
         private String s;
 
         private Repr(String t) { this.s = t; }
@@ -15,11 +15,8 @@ public class Printer implements Symantics<Printer.Repr> {
         public String print() {
             return s;
         }
-        public Repr repr() {
+        public Repr raw() {
             return this;
-        }
-        public T val() {
-            throw new UnsupportedOperationException();
         }
     }
 
@@ -28,41 +25,41 @@ public class Printer implements Symantics<Printer.Repr> {
         return "x" + id++;
     }
 
-    public Hi<Repr, Integer> int_(int i) {
+    public Of<Repr, Integer> int_(int i) {
         return new Repr<>(Integer.toString(i));
     }
 
-    public Hi<Repr, Boolean> bool_(boolean b) {
+    public Of<Repr, Boolean> bool_(boolean b) {
         return new Repr<>(Boolean.toString(b));
     }
 
-    public <A, B> Hi<Repr, Function<A, B>> lam(Function<Hi<Repr, A>, Hi<Repr, B>> f) {
+    public <A, B> Of<Repr, Function<A, B>> lam(Function<Of<Repr, A>, Of<Repr, B>> f) {
         String sym = genSym();
         return new Repr<>("(λ" + sym + "." + f.apply(new Repr<>(sym)) + ")");
     }
 
-    public <A, B> Hi<Repr, B> app(Hi<Repr, Function<A, B>> f, Hi<Repr, A> v) {
-        return new Repr<>("(" + f.repr().print() + " (" + v.repr().print() + "))");
+    public <A, B> Of<Repr, B> app(Of<Repr, Function<A, B>> f, Of<Repr, A> v) {
+        return new Repr<>("(" + f.raw().print() + " (" + v.raw().print() + "))");
     }
 
-    public <A, B> Hi<Repr, Function<A, B>> fix(Function<Hi<Repr, Function<A, B>>, Hi<Repr, Function<A, B>>> f) {
+    public <A, B> Of<Repr, Function<A, B>> fix(Function<Of<Repr, Function<A, B>>, Of<Repr, Function<A, B>>> f) {
         String sym = genSym();
         return new Repr<>("[θ(λ" + sym + "." + f.apply(new Repr<>(sym)) + ")]");
     }
 
-    public Hi<Repr, Integer> add(Hi<Repr, Integer> a, Hi<Repr, Integer> b) {
-        return new Repr<>("(" + a.repr().print() + " + " + b.repr().print() + ")" );
+    public Of<Repr, Integer> add(Of<Repr, Integer> a, Of<Repr, Integer> b) {
+        return new Repr<>("(" + a.raw().print() + " + " + b.raw().print() + ")" );
     }
 
-    public Hi<Repr, Integer> mul(Hi<Repr, Integer> a, Hi<Repr, Integer> b) {
-        return new Repr<>("(" + a.repr().print() + " * " + b.repr().print() + ")");
+    public Of<Repr, Integer> mul(Of<Repr, Integer> a, Of<Repr, Integer> b) {
+        return new Repr<>("(" + a.raw().print() + " * " + b.raw().print() + ")");
     }
 
-    public Hi<Repr, Boolean> leq(Hi<Repr, Integer> a, Hi<Repr, Integer> b) {
-        return new Repr<>("(" + a.repr().print() + " <= " + b.repr().print() + ")");
+    public Of<Repr, Boolean> leq(Of<Repr, Integer> a, Of<Repr, Integer> b) {
+        return new Repr<>("(" + a.raw().print() + " <= " + b.raw().print() + ")");
     }
 
-    public <A> Hi<Repr, A> if_(Hi<Repr, Boolean> test, Supplier<Hi<Repr, A>> tBranch, Supplier<Hi<Repr, A>> fBranch) {
-        return new Repr<>("if " + test.repr().print() + " then {" + tBranch.get().repr().print() + "} else {" + fBranch.get().repr().print() + "}");
+    public <A> Of<Repr, A> if_(Of<Repr, Boolean> test, Supplier<Of<Repr, A>> tBranch, Supplier<Of<Repr, A>> fBranch) {
+        return new Repr<>("if " + test.raw().print() + " then {" + tBranch.get().raw().print() + "} else {" + fBranch.get().raw().print() + "}");
     }
 }

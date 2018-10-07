@@ -7,9 +7,8 @@ import java.util.function.Supplier;
 public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
     // We are cheating here, i.e. we need to cast in the partial evaluator, but only in there!
     // T is the represented type, whereas U is the static value's type.
-    // See lam: Hi<Repr, Function<A, B>>'s static value actually is of type Function<Hi<Repr, A>, Hi<Repr, B>>
-    // This could be "solved" by adding another generic type parameter to Hi.
-    public static class Repr<T, U> implements Hi<Repr, T> {
+    // See lam: Of<Repr, Function<A, B>>'s static value actually is of type Function<Of<Repr, A>, Of<Repr, B>>
+    public static class Repr<T, U> implements Of<Repr, T> {
         private final Supplier<String> lazyCode;
         private final Optional<U> staticValue;
 
@@ -30,10 +29,11 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
             // return "(" + code.get() + ", " + staticValue + ")";
             return lazyCode.get();
         }
-        public Repr repr() { return this; }
-        public T val() {
-            throw new UnsupportedOperationException();
-        }
+        public Repr raw() { return this; }
+    }
+
+    private static <T> Repr<T, T> c(Of<Repr, T> repr) {
+        return (Repr<T, T>) repr;
     }
 
     private final boolean limitUnfolding;
@@ -53,41 +53,41 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
         this.maxUnfoldDepth = maxUnfoldDepth;
     }
 
-    public Hi<Repr, Integer> int_(int i) {
+    public Of<Repr, Integer> int_(int i) {
         return new Repr<>(() -> Integer.toString(i), i);
     }
 
-    public Hi<Repr, Boolean> bool_(boolean b) {
+    public Of<Repr, Boolean> bool_(boolean b) {
         return new Repr<>(() -> Boolean.toString(b), b);
     }
 
-    public <A, B> Hi<Repr, Function<A, B>> lam(Function<Hi<Repr, A>, Hi<Repr, B>> f) {
+    public <A, B> Of<Repr, Function<A, B>> lam(Function<Of<Repr, A>, Of<Repr, B>> f) {
         return new Repr<>(
             () -> {
                 String sym = genSym();
-                return "(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ")";
+                return "(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).raw().getCode() + ")";
             },
             f
         );
     }
 
-    public <A, B> Hi<Repr, B> app(Hi<Repr, Function<A, B>> f, Hi<Repr, A> v) {
-        Optional<Function<Hi<Repr, A>, Hi<Repr, B>>> fValue = f.repr().getStaticValue();
+    public <A, B> Of<Repr, B> app(Of<Repr, Function<A, B>> f, Of<Repr, A> v) {
+        Optional<Function<Of<Repr, A>, Of<Repr, B>>> fValue = f.raw().getStaticValue();
 
         if (fValue.isPresent()) {
-            Hi<Repr, B> r = fValue.get().apply(v);
+            Of<Repr, B> r = fValue.get().apply(v);
             return r;
         } else {
-            return new Repr<>(() -> f.repr().getCode() + ".apply(" + v.repr().getCode() + ")");
+            return new Repr<>(() -> f.raw().getCode() + ".apply(" + v.raw().getCode() + ")");
         }
     }
 
-    public <A, B> Hi<Repr, Function<A, B>> fix(Function<Hi<Repr, Function<A, B>>, Hi<Repr, Function<A, B>>> f) {
+    public <A, B> Of<Repr, Function<A, B>> fix(Function<Of<Repr, Function<A, B>>, Of<Repr, Function<A, B>>> f) {
         if (limitUnfolding) {
             class Self {
                 private int unfoldDepth = 0;
 
-                Function<Hi<Repr, A>, Hi<Repr, B>> self = x -> {
+                Function<Of<Repr, A>, Of<Repr, B>> self = x -> {
                     if (this.unfoldDepth <= maxUnfoldDepth) {
                         this.unfoldDepth++;
                         return app(f.apply(lam(this.self)), x);
@@ -95,7 +95,7 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
                         return new Repr<>(
                             () -> {
                                 String sym = genSym();
-                                return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
+                                return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).raw().getCode() + ").apply(" + x.raw().getCode() + ")";
                             }
                         );
                     }
@@ -105,20 +105,20 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
             return new Repr<>(
                     () -> {
                         String sym = genSym();
-                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ")";
+                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).raw().getCode() + ")";
                     },
                     new Self().self
             );
         } else {
             class Self {
-                Function<Hi<Repr, A>, Hi<Repr, B>> self = x -> {
-                    if (x.repr().getStaticValue().isPresent()) {
+                Function<Of<Repr, A>, Of<Repr, B>> self = x -> {
+                    if (x.raw().getStaticValue().isPresent()) {
                         return app(f.apply(lam(this.self)), x);
                     } else {
                         return new Repr<>(
                             () -> {
                                 String sym = genSym();
-                                return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
+                                return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).raw().getCode() + ").apply(" + x.raw().getCode() + ")";
                             }
                         );
                     }
@@ -128,7 +128,7 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
             return new Repr<>(
                     () -> {
                         String sym = genSym();
-                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ")";
+                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).raw().getCode() + ")";
                     },
                     new Self().self
             );
@@ -138,21 +138,21 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
         class Self {
             private int unfoldDepth = 0;
 
-            Hi<Repr, Function<A, B>> self =
-                new Repr<Function<A, B>, Function<Hi<Repr, A>, Hi<Repr, B>>>(
+            Of<Repr, Function<A, B>> self =
+                new Repr<Function<A, B>, Function<Of<Repr, A>, Of<Repr, B>>>(
                         () -> {
                             String sym = genSym();
-                            return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ")";
+                            return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).raw().getCode() + ")";
                         },
                         x -> {
                             if (this.unfoldDepth <= maxUnfoldDepth) {
                                 this.unfoldDepth++;
-                                return ((Function<Hi<Repr, A>, Hi<Repr, B>>) f.apply(this.self).repr().getStaticValue().get()).apply(x);
+                                return ((Function<Of<Repr, A>, Of<Repr, B>>) f.apply(this.self).raw().getStaticValue().get()).apply(x);
                             } else {
                                 return new Repr<>(
                                     () -> {
                                         String sym = genSym();
-                                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
+                                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).raw().getCode() + ").apply(" + x.raw().getCode() + ")";
                                     }
                                 );
                             }
@@ -163,20 +163,20 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
 
         /*
         class Self {
-            Hi<Repr, Function<A, B>> self =
-                new Repr<Function<A, B>, Function<Hi<Repr, A>, Hi<Repr, B>>>(
+            Of<Repr, Function<A, B>> self =
+                new Repr<Function<A, B>, Function<Of<Repr, A>, Of<Repr, B>>>(
                     () -> {
                         String sym = genSym();
-                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ")";
+                        return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).raw().getCode() + ")";
                     },
                     x -> {
-                        if (x.repr().getStaticValue().isPresent()) {
-                            return ((Function<Hi<Repr, A>, Hi<Repr, B>>) f.apply(this.self).repr().getStaticValue().get()).apply(x);
+                        if (x.raw().getStaticValue().isPresent()) {
+                            return ((Function<Of<Repr, A>, Of<Repr, B>>) f.apply(this.self).raw().getStaticValue().get()).apply(x);
                         } else {
                             return new Repr<>(
                                 () -> {
                                     String sym = genSym();
-                                    return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).repr().getCode() + ").apply(" + x.repr().getCode() + ")";
+                                    return "fix(" + sym + " -> " + f.apply(new Repr<>(() -> sym)).raw().getCode() + ").apply(" + x.raw().getCode() + ")";
                                 }
                             );
                         }
@@ -188,29 +188,29 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
         */
     }
 
-    public Hi<Repr, Integer> add(Hi<Repr, Integer> a, Hi<Repr, Integer> b) {
-        Optional<Integer> aValue = a.repr().getStaticValue();
-        Optional<Integer> bValue = b.repr().getStaticValue();
+    public Of<Repr, Integer> add(Of<Repr, Integer> a, Of<Repr, Integer> b) {
+        Optional<Integer> aValue = c(a).getStaticValue();
+        Optional<Integer> bValue = c(b).getStaticValue();
 
         if (aValue.isPresent() && bValue.isPresent()) {
             Integer result = aValue.get() + bValue.get();
-            return new Repr<>(() -> result.toString(), result);
+            return new Repr<>(result::toString, result);
         } else if (aValue.isPresent() && aValue.get() == 0) {
             return b;
         } else if (bValue.isPresent() && bValue.get() == 0) {
             return a;
         } else {
-            return new Repr<>(() -> "(" + a.repr().getCode() + " + " + b.repr().getCode() + ")");
+            return new Repr<>(() -> "(" + a.raw().getCode() + " + " + b.raw().getCode() + ")");
         }
     }
 
-    public Hi<Repr, Integer> mul(Hi<Repr, Integer> a, Hi<Repr, Integer> b) {
-        Optional<Integer> aValue = a.repr().getStaticValue();
-        Optional<Integer> bValue = b.repr().getStaticValue();
+    public Of<Repr, Integer> mul(Of<Repr, Integer> a, Of<Repr, Integer> b) {
+        Optional<Integer> aValue = c(a).getStaticValue();
+        Optional<Integer> bValue = c(b).getStaticValue();
 
         if (aValue.isPresent() && bValue.isPresent()) {
             Integer result = aValue.get() * bValue.get();
-            return new Repr<>(() -> result.toString(), result);
+            return new Repr<>(result::toString, result);
         } else if (aValue.isPresent() && aValue.get() == 0 || bValue.isPresent() && bValue.get() == 0) {
             return new Repr<>(() -> "(0)", 0);
         } else if (aValue.isPresent() && aValue.get() == 1) {
@@ -218,24 +218,24 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
         } else if (bValue.isPresent() && bValue.get() == 1) {
             return a;
         } else {
-            return new Repr<>(() -> "(" + a.repr().getCode() + " * " + b.repr().getCode() + ")");
+            return new Repr<>(() -> "(" + a.raw().getCode() + " * " + b.raw().getCode() + ")");
         }
     }
 
-    public Hi<Repr, Boolean> leq(Hi<Repr, Integer> a, Hi<Repr, Integer> b) {
-        Optional<Integer> aValue = a.repr().getStaticValue();
-        Optional<Integer> bValue = b.repr().getStaticValue();
+    public Of<Repr, Boolean> leq(Of<Repr, Integer> a, Of<Repr, Integer> b) {
+        Optional<Integer> aValue = c(a).getStaticValue();
+        Optional<Integer> bValue = c(b).getStaticValue();
 
         if (aValue.isPresent() && bValue.isPresent()) {
             Boolean result = aValue.get() <= bValue.get();
-            return new Repr<>(() -> result.toString(), result);
+            return new Repr<>(result::toString, result);
         } else {
-            return new Repr<>(() -> "(" + a.repr().getCode() + " <= " + b.repr().getCode() + ")");
+            return new Repr<>(() -> "(" + a.raw().getCode() + " <= " + b.raw().getCode() + ")");
         }
     }
 
-    public <A> Hi<Repr, A> if_(Hi<Repr, Boolean> test, Supplier<Hi<Repr, A>> tBranch, Supplier<Hi<Repr, A>> fBranch) {
-        Optional<Boolean> testValue = test.repr().getStaticValue();
+    public <A> Of<Repr, A> if_(Of<Repr, Boolean> test, Supplier<Of<Repr, A>> tBranch, Supplier<Of<Repr, A>> fBranch) {
+        Optional<Boolean> testValue = c(test).getStaticValue();
 
         if (testValue.isPresent()) {
             if (testValue.get()) {
@@ -244,7 +244,7 @@ public class PartialEvaluator implements Symantics<PartialEvaluator.Repr> {
                 return fBranch.get();
             }
         } else {
-            return new Repr<>(() -> test.repr().getCode() + " ? " + tBranch.get().repr().getCode() + " : " + fBranch.get().repr().getCode());
+            return new Repr<>(() -> test.raw().getCode() + " ? " + tBranch.get().raw().getCode() + " : " + fBranch.get().raw().getCode());
         }
     }
 }

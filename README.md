@@ -4,8 +4,9 @@ Tagless
 Maximilian Scherr, 2014-
 
 An attempt to loosely implement parts of the paper "Finally Tagless Partially Evaluated" by Carette et al.
-in Java. Java 8 brings lambda expression syntax and default methods, but lacks higher kinded types. We have to emulate them with a wrapper interface.
+in Java.
 
+Java 8 brings lambda expression syntax and default methods, but lacks higher kinded types, so we have to work around this.
 Furthermore, Java does not support multi-staged programming (MSP), so we will have to improvise, i.e. generated code and partial evaluation residual code is currently represented as strings.
 
 Example
@@ -16,7 +17,7 @@ Programs can be expressed like this:
 interface Program<Repr> extends Symantics<Repr> {
     default void main() {
         // ((λx0.(x0 + 1)) (3))
-        Hi<Repr, Integer> test1 =
+        Of<Repr, Integer> test1 =
             app(
                 lam(x ->
                     add(x, int_(1))
@@ -26,7 +27,7 @@ interface Program<Repr> extends Symantics<Repr> {
         ;
 
         // (((λx1.(λx2.(x1 + x2))) (4)) (6))
-        Hi<Repr, Integer> test2 =
+        Of<Repr, Integer> test2 =
             app(
                 app(
                     lam(x ->
@@ -39,7 +40,7 @@ interface Program<Repr> extends Symantics<Repr> {
         ;
 
         // ([θ(λx3.(λx4.if (x4 <= 0) then {1} else {(x4 * (x3 ((x4 + -1))))}))] (6))
-        Hi<Repr, Function<Integer, Integer>> fact =
+        Of<Repr, Function<Integer, Integer>> fact =
             fix(self ->
                 lam(n ->
                     if_(
@@ -94,5 +95,5 @@ new HaskellPrintProgram().main();
 References
 ---
 
-* The reference paper with Haskell and OCaml implementations: http://www.cs.rutgers.edu/~ccshan/tagless/aplas.pdf
+* The reference paper with Haskell and OCaml implementations: http://okmij.org/ftp/tagless-final/APLAS.pdf
 * An implementation in Scala: https://github.com/vjovanov/finally-tagless

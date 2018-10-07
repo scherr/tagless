@@ -3,8 +3,8 @@ package tagless;
 import java.util.function.Function;
 
 interface Program<Repr> extends Symantics<Repr> {
-    default Hi<Repr, Function<Integer, Function<Integer, Integer>>> main() {
-        Hi<Repr, Integer> test1 =
+    default Of<Repr, Function<Integer, Function<Integer, Integer>>> main() {
+        Of<Repr, Integer> test1 =
             app(
                 lam(x ->
                     add(x, int_(1))
@@ -13,7 +13,7 @@ interface Program<Repr> extends Symantics<Repr> {
             )
         ;
 
-        Hi<Repr, Integer> test2 =
+        Of<Repr, Integer> test2 =
             app(
                 app(
                     lam(x ->
@@ -25,7 +25,7 @@ interface Program<Repr> extends Symantics<Repr> {
             )
         ;
 
-        Hi<Repr, Function<Integer, Integer>> fact =
+        Of<Repr, Function<Integer, Integer>> fact =
             fix(self ->
                 lam(n ->
                     if_(
@@ -37,19 +37,19 @@ interface Program<Repr> extends Symantics<Repr> {
             )
         ;
 
-        Hi<Repr, Function<Integer, Function<Integer, Integer>>> test3 =
+        Of<Repr, Function<Integer, Function<Integer, Integer>>> test3 =
             lam(x ->
                 lam(y -> add(x, y))
             )
         ;
 
-        Hi<Repr, Function<Integer, Function<Integer, Integer>>> test4 =
+        Of<Repr, Function<Integer, Function<Integer, Integer>>> test4 =
             lam(x ->
                 lam(y -> mul(add(int_(-4), x), add(x, y)))
             )
         ;
 
-        Hi<Repr, Function<Integer, Function<Integer, Integer>>> power =
+        Of<Repr, Function<Integer, Function<Integer, Integer>>> power =
             fix(self ->
                 lam(exp ->
                     lam(base ->
@@ -63,16 +63,16 @@ interface Program<Repr> extends Symantics<Repr> {
             )
         ;
 
-        Hi<Repr, Function<Function<Integer, Function<Integer, Integer>>, Function<Integer, Function<Integer, Integer>>>> flip =
+        Of<Repr, Function<Function<Integer, Function<Integer, Integer>>, Function<Integer, Function<Integer, Integer>>>> flip =
             lam(f ->
-                lam((Hi<Repr, Integer> x) ->
-                    lam((Hi<Repr, Integer> y) -> app(app(f, y), x))
+                lam((Of<Repr, Integer> x) ->
+                    lam((Of<Repr, Integer> y) -> app(app(f, y), x))
                 )
             )
         ;
 
         // HiRepr<Repr, Function<Integer, Function<Integer, Integer>>> powerFlipped = app(flip, power);
-        Hi<Repr, Function<Integer, Function<Integer, Integer>>> powerFlipped =
+        Of<Repr, Function<Integer, Function<Integer, Integer>>> powerFlipped =
             fix(self ->
                 lam(base ->
                     lam(exp ->
@@ -98,15 +98,15 @@ interface Program<Repr> extends Symantics<Repr> {
         // System.out.println(app(powerFlipped, int_(10)));
         System.out.println(power);
         System.out.println(powerFlipped);
-        System.out.println((lam((Hi<Repr, Integer> x) -> app(app(power, int_(2)), add(x, x)))));
-        Hi<Repr, Function<Integer, Integer>> f = lam(x -> app(lam(y -> mul(y, int_(4))), x));
+        System.out.println((lam((Of<Repr, Integer> x) -> app(app(power, int_(2)), add(x, x)))));
+        Of<Repr, Function<Integer, Integer>> f = lam(x -> app(lam(y -> mul(y, int_(4))), x));
         System.out.println(f);
 
         return test3;
     }
 
-    default Hi<Repr, Function<Object, Integer>> contTest() {
-        Hi<Repr, Integer> test1 =
+    default Of<Repr, Function<Object, Integer>> contTest() {
+        Of<Repr, Integer> test1 =
             app(
                 lam(x ->
                     add(x, x)
@@ -121,7 +121,7 @@ interface Program<Repr> extends Symantics<Repr> {
             )
         ;
 
-        Hi<Repr, Function<Integer, Integer>> inner =
+        Of<Repr, Function<Integer, Integer>> inner =
             app(
                 lam(x -> {
                     System.out.println("Test x -> ...!");
@@ -136,7 +136,7 @@ interface Program<Repr> extends Symantics<Repr> {
 
         // It seems blocks in lambda expressions interfere with Java's type inference.
         // The following shows no warnings while the definition above does!
-        Hi<Repr, Function<Integer, Integer>> innerNoWarning =
+        Of<Repr, Function<Integer, Integer>> innerNoWarning =
             app(
                 lam(x ->
                     lam(y -> int_(2))
@@ -145,7 +145,7 @@ interface Program<Repr> extends Symantics<Repr> {
             )
         ;
 
-        Hi<Repr, Integer> test2 =
+        Of<Repr, Integer> test2 =
             app(
                 lam(f ->
                     add(app(f, int_(0)), app(f, int_(0)))
@@ -155,7 +155,7 @@ interface Program<Repr> extends Symantics<Repr> {
         ;
 
         // This does not terminate under call-by-value but does under call-by-name.
-        Hi<Repr, Integer> diverge =
+        Of<Repr, Integer> diverge =
             app(
                 lam(x -> int_(1)),
                 app(fix(f -> f), int_(2))
@@ -196,7 +196,7 @@ public class Test {
         System.out.println(p.run(p.contTest()).apply(123));
 
         /*
-        System.out.println(new HaskellPrintProgram().main().repr());
+        System.out.println(new HaskellPrintProgram().main().raw());
         System.out.println(new EvaluateProgram().main().val().apply(2).apply(10));
         */
 
